@@ -1,7 +1,10 @@
 ---
-title: 'Análisis sismos: Autocorrelación espacial'
-author: "Camila Aguilar"
-date: "2023-11-07"
+title: 'ANÁLISIS ESPACIAL DE SISMOS EN LOS CANTONES DE COSTA RICA DURANTE EL PERIODO 2010-2022'
+author:
+- 'Camila Aguilar'
+- 'Brenda Fonseca'
+- 'Héctor Ramírez'
+date: "Noviembre 2023"
 output: html_document
 editor_options: 
   chunk_output_type: console
