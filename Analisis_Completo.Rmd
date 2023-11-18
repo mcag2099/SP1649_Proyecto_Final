@@ -10,6 +10,7 @@ editor_options:
   chunk_output_type: console
 ---
 
+# Paquetes
 
 ```{r}
 library(readxl)
@@ -17,8 +18,11 @@ library(dplyr)
 library(lubridate)
 library(stringr)
 library(car)
+library(sf)
 ```
 
+
+# Procesamientos previos
 
 ```{r}
 ###Lectura de datos
@@ -99,3 +103,40 @@ datos3$clas <- as.factor(datos3$clas_n)
 
 levels(datos3$clas) <- c("Muy ligera", "Ligera", "Moderada", "Fuerte", "Muy fuerte")
 ```
+
+
+
+
+```{r}
+canton <- read_sf('Límites cantonales de Costa Rica/Cantones2014ctm05.shp')
+
+canton <- canton %>% 
+  dplyr::select(NCANTON, CODNUM, geometry) %>% 
+  arrange(CODNUM) %>% 
+  rename(PC = CODNUM)
+
+
+codigos$PC <- as.numeric(codigos$PC)
+canton2 <- left_join(canton, codigos)
+
+
+datos3$PC <- as.numeric(datos3$PC)
+canton2 <- left_join(canton2, datos3)
+canton2 <- canton2[-1,]
+
+canton2 <- canton2[,-ncol(canton2)]
+
+canton2[is.na(canton2)] <-  0
+
+canton2 <- canton2 %>% 
+  dplyr::select(-NCANTON)
+
+canton2$clas_n <- car::recode(canton2$mag_prom,
+                             "3:3.9999999999999 = 1; 4:4.9=2; 5:5.9=3; 6:6.9=4; 7:7.9=5")
+canton2$clas <- as.factor(canton2$clas_n)
+
+levels(canton2$clas) <- c("Micro (< 3)", "Muy ligera (3 a 3.9)", "Ligera (4 a 4.9)", "Moderada (5 a 5.9)")
+```
+
+
+# Análsis descriptivo
