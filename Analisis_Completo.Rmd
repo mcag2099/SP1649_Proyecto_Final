@@ -19,6 +19,8 @@ library(lubridate)
 library(stringr)
 library(car)
 library(sf)
+library(ggplot2)
+library(tidyr)
 ```
 
 
@@ -108,15 +110,20 @@ levels(datos3$clas) <- c("Muy ligera", "Ligera", "Moderada", "Fuerte", "Muy fuer
 
 
 ```{r}
+###Códigos (PC) de los cantones
+codigos <- read_excel("Datos/cod_cantones81.xlsx")
+
 canton <- read_sf('Límites cantonales de Costa Rica/Cantones2014ctm05.shp')
 
 
+###Seleccionar variables de interés
 canton <- canton %>% 
   dplyr::select(NCANTON, CODNUM, geometry) %>% 
   arrange(CODNUM) %>% 
   rename(PC = CODNUM)
 
 
+###Agregar el geometry del shape al df de trabajo
 codigos$PC <- as.numeric(codigos$PC)
 canton2 <- left_join(canton, codigos)
 
@@ -127,17 +134,119 @@ canton2 <- canton2[-1,]
 
 canton2 <- canton2[,-ncol(canton2)]
 
+
+#### Llenar con ceros los canotnes que no presentaron sismos
 canton2[is.na(canton2)] <-  0
 
 canton2 <- canton2 %>% 
   dplyr::select(-NCANTON)
 
+
+### Agregar variables
 canton2$clas_n <- car::recode(canton2$mag_prom,
                              "3:3.9999999999999 = 1; 4:4.9=2; 5:5.9=3; 6:6.9=4; 7:7.9=5")
 canton2$clas <- as.factor(canton2$clas_n)
 
 levels(canton2$clas) <- c("Micro (< 3)", "Muy ligera (3 a 3.9)", "Ligera (4 a 4.9)", "Moderada (5 a 5.9)")
+
+
+### Guardar en RDS para facilitar lectura
+#saveRDS(canton2, "Data/sismos_geom.RDS")
 ```
 
 
 # Análsis descriptivo
+
+
+```{r}
+###Paleta de colores
+colors_map <- c("#ffffd4","#fee391", "#fec44f", "#fe9929")
+```
+
+
+```{r}
+###Mapa 1
+ggplot(canton2$geometry) +
+  geom_sf(aes(fill = canton2$cantidad), 
+          color = "black",
+          linetype = 1,
+          lwd = 0.25) +
+     scale_fill_gradient2("Cantidad", low = c("#ffffd4", "#fed98e"), mid = "#fe9929", high = c("#d95f0e","#993404"), midpoint = 20, breaks=c(0, 10, 20, 30, 40), limits=c(0,42), labels=c(0, 10, 20, 30, 40)) +
+  theme_test() +
+  theme(axis.ticks = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        panel.grid = element_blank()) +
+    theme(legend.text = element_text(size = 9)) 
+ 
+
+```
+
+
+```{r}
+###Mapa 2
+ggplot(canton2$geometry) +
+  geom_sf(aes(fill = canton2$clas), 
+          color = "black",
+          linetype = 1,
+          lwd = 0.25)  +
+  scale_fill_manual(values = colors_map, name = NULL) +
+  theme_test() +
+  theme(axis.ticks = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(), 
+        panel.grid = element_blank()) +
+    theme(legend.text = element_text(size = 9)) +
+  guides(fill=guide_legend(title="Nivel de magnitud"))
+ 
+```
+
+
+
+```{r}
+datos4 <- datos2 %>% 
+  group_by(anio) %>% 
+  summarise(cantidad = n(),
+            mag_prom = mean(mag))
+  
+```
+
+
+```{r}
+datos4 <- datos2 %>% 
+  separate(
+    col = PC,
+    sep = c(1),
+    into = c("PROV", "c.d"), 
+    remove = FALSE
+  )
+
+datos4$PROV2 <- as.factor(datos4$PROV)
+
+levels(datos4$PROV2) <- c("San José", "Alajuela", "Cartago", "Heredia", "Guanacaste", "Puntarenas", "Limón")
+
+
+datos4 <- datos4 %>% 
+  group_by(PROV, PROV2) %>% 
+  summarise(cantidad = n(),
+            mag_prom = mean(mag)) %>% 
+  arrange(desc(cantidad))
+```
+
+
+```{r}
+### Gráfico 1
+ggplot(data=datos4, aes(x=reorder(PROV2, cantidad, FUN = sum), y=cantidad)) +
+  geom_col(fill =  "#F1A661") +
+    geom_text(aes(label=cantidad),vjust = 0, hjust = -0.1, fontface="bold", size = 3.3) +
+    theme_classic() +
+    xlab("") +
+    ylab("Cantidad") +
+    coord_flip() +
+  scale_y_continuous(breaks = seq(0, 150, 25), limits = c(0,155), 
+                       labels=function(n){format(n, scientific = FALSE)})
+```
+
+
+
+# Estructura de vecinos y matriz de pesos
