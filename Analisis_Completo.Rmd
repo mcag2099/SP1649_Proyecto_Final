@@ -21,6 +21,10 @@ library(car)
 library(sf)
 library(ggplot2)
 library(tidyr)
+library(spData)
+library(mapview)
+library(spdep)
+library(tmap)
 ```
 
 
@@ -250,3 +254,9 @@ ggplot(data=datos4, aes(x=reorder(PROV2, cantidad, FUN = sum), y=cantidad)) +
 
 
 # Estructura de vecinos y matriz de pesos
+
+```{r}
+###Leer datos
+#canton2 <- readRDS("Data/sismos_geom.RDS")
+```
+
