@@ -10,6 +10,7 @@ Este repositorio contiene todos los insumos del proyecto final del curso SP-1649
 * Archivos
   * [`Analisis_Completo.Rmd`](#análisis)
   * [`Artículo - Camila, Brenda, Hector.pdf`](#escrito)
+  * [`Poster`](#escrito)
   * [LICENSE](#licencia)
 
 * Carpetas
