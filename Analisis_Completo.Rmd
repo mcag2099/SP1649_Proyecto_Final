@@ -21,6 +21,7 @@ library(car)
 library(sf)
 library(ggplot2)
 library(tidyr)
+library(sp)
 library(spData)
 library(mapview)
 library(spdep)
@@ -256,7 +257,111 @@ ggplot(data=datos4, aes(x=reorder(PROV2, cantidad, FUN = sum), y=cantidad)) +
 # Estructura de vecinos y matriz de pesos
 
 ```{r}
-###Leer datos
-#canton2 <- readRDS("Data/sismos_geom.RDS")
+### Lectura de datos
+datos <- readRDS("Datos/sismos_geom.RDS")
 ```
+
+```{r}
+### Datos en formato sp
+datos_sp <- as(datos,"Spatial")
+```
+
+
+```{r}
+### Cálculo de estructura de vecinos
+coords <- coordinates(datos_sp)
+id <-row.names(datos_sp) 
+
+nb.1 <- poly2nb(datos_sp,queen = T)
+nb.2 <- poly2nb(datos_sp,queen = F)
+nb.3 <- knn2nb(knearneigh(coords, k=2), row.names=id)
+nb.4 <- knn2nb(knearneigh(coords, k=4), row.names=id)
+```
+
+
+```{r}
+### Gráfico 2
+par(mfrow = c(2,2))
+
+####Reina
+plot(datos_sp, axes=F, border="gray")
+plot(nb.1,coords, pch = 20, cex = 0.6, add = T, col = "red")
+title("(a) Reina", cex.main= 1)
+
+###Torre
+plot(datos_sp, axes=F, border="gray")
+plot(nb.2,coords, pch = 20, cex = 0.6, add = T, col = "cyan")
+title("(b) Torre", cex.main= 1)
+
+###KNN(2)
+plot(datos_sp, axes=F, border="gray")
+plot(nb.3,coords, pch = 20, cex = 0.6, add = T, col = "green")
+title("(c) KNN(2)", cex.main= 1)
+
+###KNN(4)
+plot(datos_sp, axes=F, border="gray")
+plot(nb.4,coords, pch = 20, cex = 0.6, add = T, col = "chartreuse3")
+title("(d) KNN(4)", cex.main= 1)
+```
+
+
+
+```{r}
+####Matrices de pesos
+
+####Reina
+w.11 <- nb2listw(nb.1,style = "W")
+w.12 <- nb2listw(nb.1,style = "B")
+w.13 <- nb2listw(nb.1,style = "S")
+
+###Torre
+w.21 <- nb2listw(nb.2,style = "W")
+w.22 <- nb2listw(nb.2,style = "B")
+w.23 <- nb2listw(nb.2,style = "S")
+
+###KNN(2)
+w.31 <- nb2listw(nb.3,style = "W")
+w.32 <- nb2listw(nb.3,style = "B")
+w.33 <- nb2listw(nb.3,style = "S")
+
+###KNN(4)
+w.41 <- nb2listw(nb.4,style = "W")
+w.42 <- nb2listw(nb.4,style = "B")
+w.43 <- nb2listw(nb.4,style = "S")
+
+
+#I de Moran
+moran.test(datos_sp$cantidad,listw=w.11)
+moran.test(datos_sp$cantidad,listw=w.12)
+moran.test(datos_sp$cantidad,listw=w.13)
+moran.test(datos_sp$cantidad,listw=w.21)
+moran.test(datos_sp$cantidad,listw=w.22)
+moran.test(datos_sp$cantidad,listw=w.23)
+moran.test(datos_sp$cantidad,listw=w.31)
+moran.test(datos_sp$cantidad,listw=w.32)
+moran.test(datos_sp$cantidad,listw=w.33)
+moran.test(datos_sp$cantidad,listw=w.41)
+moran.test(datos_sp$cantidad,listw=w.42)
+moran.test(datos_sp$cantidad,listw=w.43)
+```
+
+
+
+# Análisis de autocorrelación espacial
+
+```{r}
+###Leer datos
+canton2 <- readRDS("Data/sismos_geom.RDS")
+```
+
+
+```{r}
+###Variables de trabajo
+map <- canton2
+map$vble <- map$cantidad
+mapview(map, zcol = "vble")
+```
+
+
+
 
