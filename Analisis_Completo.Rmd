@@ -110,6 +110,7 @@ levels(datos3$clas) <- c("Muy ligera", "Ligera", "Moderada", "Fuerte", "Muy fuer
 ```{r}
 canton <- read_sf('Límites cantonales de Costa Rica/Cantones2014ctm05.shp')
 
+
 canton <- canton %>% 
   dplyr::select(NCANTON, CODNUM, geometry) %>% 
   arrange(CODNUM) %>% 
