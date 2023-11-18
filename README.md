@@ -1,4 +1,4 @@
-# SP1649 - Proyecto Final: ANÁLISIS ESPACIAL DE SISMOS EN LOS CANTONES DE COSTA RICA DURANTE EL PERIODO 2010-2022
+# ANÁLISIS ESPACIAL DE SISMOS EN LOS CANTONES DE COSTA RICA DURANTE EL PERIODO 2010-2022
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
